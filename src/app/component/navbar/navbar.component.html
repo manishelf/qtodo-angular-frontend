@@ -5,6 +5,7 @@
     <input type="search" 
     class="grow p-2 search-bar rounded-2xl outline-0 focus:ring-2 ring-inset sm:float-end order-0 md:order-1 text-center w-full md:w-auto"
     #searchBox tabindex="0" (input)="searchItems($event)" placeholder="₍^. .^₎⟆"
+spellcheck="false"
     />
     <div class="flex flex-row order-2 options">   
     <div class="m-1 transition-all z-3 duration-1000 flex flex-row flex-wrap order-2 items-center justify-evenly w-full md:w-fit md:gap-x-2" [ngClass]="menuHidden?'opacity-0':'opacity-100'">
