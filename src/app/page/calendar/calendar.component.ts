@@ -48,7 +48,7 @@ export class CalendarComponent implements AfterViewInit{
     this.todoService.fromBin = false;
     if(!document.getElementById('fullcalander-script')){
       let script = document.createElement('script');
-      script.src = baseHref+"fullcalendar.global.min.js";
+      script.src = `${this.baseHref.replace(/\/$/, '')}/fullcalendar.global.min.js`;
       script.id ='fullcalander-script';
       script.async = true;
       script.onload = this.afterScriptLoadInit.bind(this);
