@@ -36,7 +36,7 @@ export class CanvasComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     if(!document.getElementById('fabricjs-script')){
       let script = document.createElement('script');
-      script.src = APP_BASE_HREF+'fabric.min.js';
+      script.src = `${this.baseHref.replace(/\/$/, '')}/fabric.min.js`;
       script.id ='fabricjs-script'
       script.async = true;
       script.onload = ()=>{this.onLoadFabricJs()};
