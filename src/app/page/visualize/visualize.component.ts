@@ -70,7 +70,7 @@ export class VisualizeComponent implements OnInit {
       if(sortOnfields.includes("id")) this.sortedFields$.next([]);
     });
 
-    loadChartJS(baseHref+'canvasjs.min.js');
+    loadChartJS(this.baseHref.replace(/\/$/, '')+'/canvasjs.min.js');
     this.subscribeCharts();
 
     this.selectedDataOperation$.subscribe((op)=>{
