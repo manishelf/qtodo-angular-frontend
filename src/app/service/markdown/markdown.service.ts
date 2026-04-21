@@ -19,14 +19,17 @@ export class MarkdownService {
 
    parse(input:string):Promise<SafeHtml> {
     return new Promise((res, rej)=>{
-      this.highlightCode(input);
-      marked.parse(input, {async: true}).then((result)=>{
-        res(this.domSanitizer.bypassSecurityTrustHtml(result))
+      input = this.formatCode(input); 
+      marked.parse(input, {async: true}).then((result)=>{     
+ res(this.domSanitizer.bypassSecurityTrustHtml(result));
+        requestAnimationFrame(() => {
+          Prism.highlightAll();
+        });
       });
     });
    }
 
-   highlightCode(result: string):void{
+   formatCode(result: string){
       let code =
         result.match(/<code class="language-(\w+)">([\s\S]*?)<\/code>/g) ||
         result.match(/<code>([\s\S]*?)<\/code>/);
@@ -35,11 +38,9 @@ export class MarkdownService {
           for (let i = 0; i < code.length; i++) {
           let snippet = code[i];
           result = result.replace(snippet, snippet.replace(/<br>/g, '\n'));
-        }
-        requestAnimationFrame(() => {
-          Prism.highlightAll();
-        });
+        }
       }
+      return result;
    }
 
 }
