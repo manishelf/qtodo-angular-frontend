@@ -28,6 +28,8 @@ export class ProfileComponent implements OnInit{
 
   isOffLine: boolean = false;
 
+  hideChildItems: boolean = false;
+
   userGroupList:string[] = [];
   recentLogins: any = {};
 
@@ -69,6 +71,10 @@ export class ProfileComponent implements OnInit{
       let recentLogins = localStorage["recentLogins"];
       if(!recentLogins || recentLogins == 'null'){
         recentLogins = `{"${localUser.userGroup}/${localUser.email}":${JSON.stringify(localUser)}}`;
+      }
+
+      if(user.preferences?.hideChildren){
+        this.hideChildItems = true;
       }
 
       this.userGroupList = [];
@@ -183,6 +189,35 @@ export class ProfileComponent implements OnInit{
       localStorage["recentLogins"] = JSON.stringify(this.recentLogins);       
     }    
     this.userService.loggedInUser.next(user);
+  }
+
+  onClickToggleHideChildItems(event: Event){
+    console.log(1);
+    // duplicate code from navbar updateTheme
+    if(this.user.preferences){
+      this.user.preferences.hideChildren = !this.hideChildItems;
+    }
+    else{
+      this.user.preferences = {hideChildren: true};
+    }
+    let users = localStorage['recentLogins'];
+    let usersMap:any = {};
+    if(users && users != 'null'){
+      usersMap = JSON.parse(users);
+    }
+    if(users && usersMap){
+     usersMap[this.user.userGroup+'/'+this.user.email] = this.user;
+    }else {
+      let key = `${localUser.userGroup}/${localUser.email}`;
+      usersMap = { key:{
+        email: localUser.email,
+        userGroup: localUser.userGroup,
+        preferences: {
+          hideChildItems: this.hideChildItems,
+        }
+      }}
+    }
+    localStorage['recentLogins']=JSON.stringify(usersMap);
   }
 
   clearCache(){

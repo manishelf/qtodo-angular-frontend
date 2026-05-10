@@ -43,9 +43,13 @@
                             {{userGroup}}
                         </option>
                     </select>
+                    
                 </div>
             </div>
-
+            <div>
+                <label>Hide Child Items - </label>
+                <input type="checkbox" [checked]="hideChildItems" (change)="onClickToggleHideChildItems($event)" />
+            </div>
             <div class="text-blue-400 underline cursor-pointer hover:text-blue-300 transition" 
                  #permissionsContainer 
                  [title]="userPermissions.join(' , ')" 
