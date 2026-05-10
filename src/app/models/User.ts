@@ -13,7 +13,7 @@ export interface User {
 
 	preferences? : {
 		theme?: string,
-		hideChildren?: boolean,
+		hideChildItems?: boolean,
 	}
 
 	permissions? : string[];

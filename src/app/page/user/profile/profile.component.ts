@@ -68,28 +68,21 @@ export class ProfileComponent implements OnInit{
       }else{
         this.profilePicDataUrl = '';
       }
-      let recentLogins = localStorage["recentLogins"];
-      if(!recentLogins || recentLogins == 'null'){
-        recentLogins = `{"${localUser.userGroup}/${localUser.email}":${JSON.stringify(localUser)}}`;
-      }
 
-      if(user.preferences?.hideChildren){
+      if(user.preferences?.hideChildItems){
         this.hideChildItems = true;
       }
 
       this.userGroupList = [];
-      recentLogins = JSON.parse(recentLogins);
-      this.recentLogins = recentLogins;
+      this.recentLogins = this.userService.getRecentLogins();
 
-      for(let key of Object.keys(recentLogins)){
+      for(let key of Object.keys(this.recentLogins)){
         let userKey = key.split('/');
         if(userKey[1] == user.email){          
           this.userGroupList.push(userKey[0]);
         }
       }
       
-      // this.addUserGroup(user.userGroup);
-
       this.CAN_MANAGE_PARTICIPANT_PERMISSIONS = false;
       this.CAN_ADD_PARTICIPANT = false;
       this.CAN_CHANGE_UG_CONFIG = false;
@@ -192,32 +185,7 @@ export class ProfileComponent implements OnInit{
   }
 
   onClickToggleHideChildItems(event: Event){
-    console.log(1);
-    // duplicate code from navbar updateTheme
-    if(this.user.preferences){
-      this.user.preferences.hideChildren = !this.hideChildItems;
-    }
-    else{
-      this.user.preferences = {hideChildren: true};
-    }
-    let users = localStorage['recentLogins'];
-    let usersMap:any = {};
-    if(users && users != 'null'){
-      usersMap = JSON.parse(users);
-    }
-    if(users && usersMap){
-     usersMap[this.user.userGroup+'/'+this.user.email] = this.user;
-    }else {
-      let key = `${localUser.userGroup}/${localUser.email}`;
-      usersMap = { key:{
-        email: localUser.email,
-        userGroup: localUser.userGroup,
-        preferences: {
-          hideChildItems: this.hideChildItems,
-        }
-      }}
-    }
-    localStorage['recentLogins']=JSON.stringify(usersMap);
+    this.userService.updateUserPreferences({hideChildItems: !this.hideChildItems});
   }
 
   clearCache(){

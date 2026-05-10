@@ -76,7 +76,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.todoService.fromBin = false;
     this.loggedInUserSubscription = this.userService.loggedInUser$.subscribe((user:User)=>{
-      this.hideChildren = user.preferences?.hideChildren || false;
+      this.hideChildren = user.preferences?.hideChildItems || false;
     });
     console.log('ctor - home', Date.now());
   }

@@ -6,7 +6,7 @@
             <div class="flex px-20 flex-row justify-evenly items-center"> 
                 <h1 class="text-3xl font-bold">Hello {{user.alias}}!</h1>
                 
-                <div class="flex flex-col items-center gap-y-2">
+                <div class="flex flex-col items-center gap-y-2" *ngIf="!isOffLine">
                 
                     <app-bean-item title="Change profile picture" (click)="profilePicEle.click()">
                         
@@ -51,6 +51,7 @@
                 <input type="checkbox" [checked]="hideChildItems" (change)="onClickToggleHideChildItems($event)" />
             </div>
             <div class="text-blue-400 underline cursor-pointer hover:text-blue-300 transition" 
+                 *ngIf="!isOffLine"
                  #permissionsContainer 
                  [title]="userPermissions.join(' , ')" 
                  (click)="permissionsContainer.innerHTML = userPermissions.join(' , ')">
@@ -58,50 +59,52 @@
             </div>
         </div>
 
-        <div class="w-100 p-4 sm:p-6  rounded-lg shadow-xl space-y-5">            
-            <div class="flex flex-col">
-                <label class="text-gray-300 mb-1">Alias</label>
-                <input type="text" formControlName="alias" class="p-2 rounded-md bg-gray-700  border border-gray-600 focus:ring-blue-500">
+        <div *ngIf="!isOffLine">
+            <div class="w-100 p-4 sm:p-6  rounded-lg shadow-xl space-y-5">            
+                <div class="flex flex-col">
+                    <label class="text-gray-300 mb-1">Alias</label>
+                    <input type="text" formControlName="alias" class="p-2 rounded-md bg-gray-700  border border-gray-600 focus:ring-blue-500">
+                </div>
+                
+                <div class="flex flex-col">
+                    <label class="text-gray-300 mb-1">Update Password</label>
+                    <input type="password" placeholder="*****" formControlName="newPassword" class="p-2 rounded-md bg-gray-700  border border-gray-600 focus:ring-blue-500">
+                </div>
             </div>
-            
-            <div class="flex flex-col">
-                <label class="text-gray-300 mb-1">Update Password</label>
-                <input type="password" placeholder="*****" formControlName="newPassword" class="p-2 rounded-md bg-gray-700  border border-gray-600 focus:ring-blue-500">
+
+            <div class="w-full p-4 sm:p-6  rounded-lg shadow-xl space-y-5" *ngIf="CAN_CHANGE_UG_CONFIG">
+                <h2 class="text-xl font-semibold  text-center border-b border-gray-600 pb-2">User Group Configuration</h2>
+                
+                <div class="flex flex-col">
+                    <label class="text-gray-300 mb-1">Description</label>
+                    <textarea class="p-2 rounded-xl bg-gray-700  border border-gray-600 focus:ring-blue-500" formControlName="ugDescription"></textarea>
+                </div>
+                
+                <table>
+                <tr >
+                    <td><label class="text-gray-300">Open for joining</label></td>
+                    <td><input formControlName="ugOpen" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded"></td>
+                </tr>
+                
+                <tr >
+                    <td><label class="text-gray-300">Is Collaboration Group</label></td>
+                    <td><input formControlName="ugColab" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded"></td>
+                </tr>
+                </table>
             </div>
-        </div>
 
-        <div class="w-full p-4 sm:p-6  rounded-lg shadow-xl space-y-5" *ngIf="CAN_CHANGE_UG_CONFIG">
-            <h2 class="text-xl font-semibold  text-center border-b border-gray-600 pb-2">User Group Configuration</h2>
-            
-            <div class="flex flex-col">
-                <label class="text-gray-300 mb-1">Description</label>
-                <textarea class="p-2 rounded-xl bg-gray-700  border border-gray-600 focus:ring-blue-500" formControlName="ugDescription"></textarea>
+            <app-manage-user-permissions 
+                *ngIf="isUgColab || CAN_MANAGE_PARTICIPANT_PERMISSIONS || CAN_REMOVE_PARTICIPANT || CAN_ADD_PARTICIPANT"
+                [managePermissions]="CAN_MANAGE_PARTICIPANT_PERMISSIONS"
+                [addParticipants]="CAN_ADD_PARTICIPANT"
+                [deleteParticipants]="CAN_REMOVE_PARTICIPANT"
+                class="w-full mt-4"
+            />
+
+            <app-bean-item (click)="updateUserDetails()">
+                <button class="p-3 font-semibold">Update Details</button>
+            </app-bean-item>
             </div>
-            
-            <table>
-            <tr >
-                <td><label class="text-gray-300">Open for joining</label></td>
-                <td><input formControlName="ugOpen" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded"></td>
-            </tr>
-            
-            <tr >
-                <td><label class="text-gray-300">Is Collaboration Group</label></td>
-                <td><input formControlName="ugColab" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded"></td>
-            </tr>
-            </table>
-        </div>
-
-        <app-manage-user-permissions 
-            *ngIf="isUgColab || CAN_MANAGE_PARTICIPANT_PERMISSIONS || CAN_REMOVE_PARTICIPANT || CAN_ADD_PARTICIPANT"
-            [managePermissions]="CAN_MANAGE_PARTICIPANT_PERMISSIONS"
-            [addParticipants]="CAN_ADD_PARTICIPANT"
-            [deleteParticipants]="CAN_REMOVE_PARTICIPANT"
-            class="w-full mt-4"
-        />
-
-        <app-bean-item (click)="updateUserDetails()">
-            <button class="p-3 font-semibold">Update Details</button>
-        </app-bean-item>
         <app-bean-item (click)="clearCache()">clear cache</app-bean-item>
     </div>
     <footer class="h-20 mt-8"></footer>

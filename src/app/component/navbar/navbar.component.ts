@@ -143,14 +143,8 @@ export class NavbarComponent implements AfterViewInit {
         this.userProfilePicture = null;
       }
 
-      let recentLogins = localStorage["recentLogins"];
-      if(!recentLogins || recentLogins == 'null'){
-        recentLogins = `{"${localUser.userGroup}/${localUser.email}":${JSON.stringify(localUser)}}`;
-      }
-
-      recentLogins = JSON.parse(recentLogins);
-      this.recentLogins = Object.entries(recentLogins);
-
+      this.recentLogins = Object.entries(this.userService.getRecentLogins());
+      console.log(this.recentLogins)
       if(this.lastUserLoginArrSize != this.recentLogins.length){
         this.selectedUserIndex = this.recentLogins.length - 1; // in case a user is added pick the latest
       }
@@ -159,14 +153,13 @@ export class NavbarComponent implements AfterViewInit {
       for(let e of this.recentLogins){
         if(e[0] == user?.userGroup+'/'+user?.email){
           this.selectedUserIndex = i;
-          if(!e[1].preferences){
-            // const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            // if(prefersDark){
-            //   this.changeTheme('tokyo-night');
-            // }else{
-            //   this.changeTheme('minimal');
-            // }
-            this.changeTheme('random');
+          if(!e[1].preferences || !e[1].preferences.theme){
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if(prefersDark){
+              this.changeTheme('tokyo-night');
+            }else{
+              this.changeTheme('minimal');
+            }
           }else{
             this.changeTheme(e[1].preferences.theme);
           }
@@ -449,31 +442,9 @@ export class NavbarComponent implements AfterViewInit {
       });
     }
     else this.changeTheme(sel);
-    let user = this.userService.loggedInUser.value;
-    if(user.preferences){
-      user.preferences['theme'] = sel;
-    }
-    else{
-      user.preferences = {theme: sel};
-    }
-    let users = localStorage['recentLogins'];
-    let usersMap:any = {};
-    if(users && users != 'null'){
-      usersMap = JSON.parse(users);
-    }
-    if(users && usersMap){
-     usersMap[user.userGroup+'/'+user.email] = user;
-    }else {
-      let key = `${localUser.userGroup}/${localUser.email}`;
-      usersMap = { key:{
-        email: localUser.email,
-        userGroup: localUser.userGroup,
-        preferences: {
-          theme: sel
-        }
-      }}
-    }
-    localStorage['recentLogins']=JSON.stringify(usersMap);
+
+    this.userService.updateUserPreferences({theme: sel});
+
     this.currentTheme = sel; // wierd bug where the theme name does not change on selection
     target.selectedIndex = 0;
   }
