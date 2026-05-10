@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { marked } from 'marked';
-import { collapsibleBlock, mediaEmbedExtension, treeviewExtension } from './customExtensions';
+import { collapsibleBlock, mediaEmbedExtension, treeviewExtension , katexExtension} from './customExtensions';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 declare var Prism : any;
@@ -15,13 +15,15 @@ export class MarkdownService {
       extensions: [collapsibleBlock, mediaEmbedExtension, treeviewExtension],
       gfm: true,
     });
+    marked.use(katexExtension({throwOnError: false}));
    }
 
    parse(input:string):Promise<SafeHtml> {
     return new Promise((res, rej)=>{
       input = this.formatCode(input); 
-      marked.parse(input, {async: true}).then((result)=>{     
- res(this.domSanitizer.bypassSecurityTrustHtml(result));
+      marked.parse(input, {async: true}).then((result)=>{
+     
+      res(this.domSanitizer.bypassSecurityTrustHtml(result));
         requestAnimationFrame(() => {
           Prism.highlightAll();
         });
@@ -38,7 +40,8 @@ export class MarkdownService {
           for (let i = 0; i < code.length; i++) {
           let snippet = code[i];
           result = result.replace(snippet, snippet.replace(/<br>/g, '\n'));
-        }
+        }
+
       }
       return result;
    }

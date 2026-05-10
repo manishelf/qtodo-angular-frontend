@@ -10,7 +10,6 @@ export const collapsibleBlock: any = {
     // The 's' flag is crucial for '.' to match newlines
     const rule = /^\[collapse(-(?:b|i))?:(.+?)\]([\s\S]*?)\[\/collapse\]/;
     const match = rule.exec(src);
-    console.log(match)
     if (match) {
         const token = {
             type: 'collapsibleBlock',
@@ -163,14 +162,14 @@ export const mediaEmbedExtension = {
 
 export const treeviewExtension: any = {
   name: 'treeviewExtension',
-  level: 'inline',
+  level: 'block',
 
   start(src: any) {
     return src.match(/\[|\!\[/)?.index;
   },
 
   tokenizer(src: any) {
-    const rule = /\[tree:\s*([^\]]+)\s*\]([\s\S]*?)\[\/tree\]/;
+    const rule = /^\[tree:\s*([^\]]+)\s*\]([\s\S]*?)\[\/tree]/;
 
     const match = rule.exec(src);
     if (match) {
@@ -183,7 +182,6 @@ export const treeviewExtension: any = {
         };
         // as block-level Markdown. This generates tokens for paragraphs, lists, etc.
         (this as any).lexer.blockTokens(token.text, token.tokens);
-
         return token;
     }
     return undefined;
@@ -192,29 +190,122 @@ export const treeviewExtension: any = {
   renderer(token: any) {
     let result = token.raw;
     if (token.type === 'treeviewExtension') {
+      result = '<pre> \n' + result;
       token.tokens.forEach((token: any)=>{
         token.tokens.forEach((token: any)=>{
           if(token.type == 'link'){
-            let relative = token.href.startsWith('./')
-
+            let relative = token.href.startsWith('./');
+            let paramsOnly = token.href.startsWith('./?') || token.href.startsWith('?');;
             // Use URLSearchParams to parse the query string
-            const url = new URL(token.href, window.location.origin);
+            const url = paramsOnly ? new URL(token.href, window.location.href) : new URL(token.href, window.location.origin);
             const path = url.pathname;
             const params = Object.fromEntries(url.searchParams.entries());
             const jsonString = JSON.stringify(params).replace(/"/g, '&quot;');
 
-            const clickHandler = relative
+            const clickHandler = (relative || paramsOnly)
                                         ? `onclick="event.preventDefault();
                                                     window.angularRouter.navigate(['${path}'],{queryParams:${jsonString}});
                                                    "`
                                         : '';
-           let anchor = `<a href="${token.href}" ${clickHandler}>${token.text}</a>`;
+            let anchor = `<a href="${token.href}" ${clickHandler} class="option">${token.text}</a>`;
             result = result.replace(token.raw, anchor);
           }
         })
       });
+      result = result.replace(/\[tree:\s*([^\]]+)\s*\]/, token.title);
+      result = result.replace(/\[\/tree\]/g, '');
+      result = result + '</pre>'
     }
+    
     return result;
   }
 };
 
+
+/// https://github.com/UziTech/marked-katex-extension
+
+declare var katex: any;
+
+const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1(?=[\s?!\.,:？！。，：]|$)/;
+const inlineRuleNonStandard = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1/; // Non-standard, even if there are no spaces before and after $ or $$, try to parse
+
+const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
+
+export const katexExtension = (options = {}) => {
+  return {
+    extensions: [
+      inlineKatex(options, createRenderer(options, false)),
+      blockKatex(options, createRenderer(options, true)),
+    ],
+  };
+}
+
+function createRenderer(options: any, newlineAfter: boolean) {
+  return (token: any) => katex.renderToString(token.text, { ...options, displayMode: token.displayMode }) + (newlineAfter ? '\n' : '');
+}
+
+function inlineKatex(options: any, renderer: any) {
+  const nonStandard = options && options.nonStandard;
+  const ruleReg = nonStandard ? inlineRuleNonStandard : inlineRule;
+  return {
+    name: 'inlineKatex',
+    level: 'inline',
+    start(src: string) {
+      let index;
+      let indexSrc = src;
+
+      while (indexSrc) {
+        index = indexSrc.indexOf('$');
+        if (index === -1) {
+          return null;
+        }
+        const f = nonStandard ? index > -1 : index === 0 || indexSrc.charAt(index - 1) === ' ';
+        if (f) {
+          const possibleKatex = indexSrc.substring(index);
+
+          if (possibleKatex.match(ruleReg)) {
+            return index;
+          }
+        }
+
+        indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, '');
+      }
+      return null;
+    },
+    tokenizer(src:string , tokens: any) {
+      const match = src.match(ruleReg);
+      if (match) {
+        return {
+          type: 'inlineKatex',
+          raw: match[0],
+          text: match[2].trim(),
+          displayMode: match[1].length === 2,
+        };
+      }
+      return null;
+    },
+    renderer,
+  };
+}
+
+function blockKatex(options: any, renderer: any) {
+  return {
+    name: 'blockKatex',
+    level: 'block',
+    tokenizer(src: string, tokens: any) {
+      const match = src.match(blockRule);
+      if (match) {
+        return {
+          type: 'blockKatex',
+          raw: match[0],
+          text: match[2].trim(),
+          displayMode: match[1].length === 2,
+        };
+      }
+      return null;
+    },
+    renderer,
+  };
+}
+
+////

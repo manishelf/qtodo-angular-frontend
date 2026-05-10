@@ -39,9 +39,11 @@
             </i>
         </div>
     </div>
-    <div [ngClass]="minimized?'max-h-0 opacity-0':'max-h-[500px] max-w-29/30 opacity-100 overflow-auto m-auto pt-2 visible'"
-      class="transition-all duration-500 ease-in-out match-braces rainbow-braces overflow-ellipsis todo-item-description rounded-md">
-      <div [ngClass]="markdownParsed?'visible':'hidden'" [innerHtml]="parsedMD">
-      </div>
+    <div [ngClass]="minimized? 
+             'max-h-0 opacity-0 overflow-hidden p-0 m-0 invisible'
+            :'max-h-[500px] max-w-29/30 opacity-100 overflow-auto m-auto pt-2 visible'"
+        class="transition-all duration-500 ease-in-out match-braces rainbow-braces overflow-ellipsis todo-item-description rounded-md">
+        <div [ngClass]="markdownParsed?'visible':'hidden'" [innerHtml]="parsedMD">
+        </div>
     </div>
 </div>

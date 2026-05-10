@@ -32,10 +32,10 @@ import { ToastService } from 'angular-toastify';
 import { TagListComponent } from '../../component/tag-list/tag-list.component';
 import{v4 as uuidv4} from 'uuid';
 import { UserService } from '../../service/user/user.service';
-import { Subscription } from 'rxjs';
+import { Subscription, delay, Observable } from 'rxjs';
 import { localUser } from '../../service/consts';
 import { MarkdownService } from '../../service/markdown/markdown.service';
-import { delay } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-editor',
@@ -43,10 +43,10 @@ import { delay } from 'rxjs';
   styleUrls: ['./editor.component.css'],
   imports: [FormsModule, CommonModule, MatIconModule, UserFormComponent, TagListComponent],
 })
-export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestroy, OnChanges {
+export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit, OnDestroy {
 
   @Input('inCompoundView') inCompoundView: boolean = false;
-  @Input('compoundViewActiveItem') compoundViewActiveItem: TodoItem|null = null;
+  @Input('compoundViewActiveItem') compoundViewActiveItem$: Observable<TodoItem|null> | null = null;
 
   @Output('saved') itemSavedEvent = new EventEmitter<boolean>();
 
@@ -69,7 +69,7 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
   customFormData: any;
   editiorLinesLoaded: boolean = false;
 
-  @Input() navigateBackOnSave = true;
+  @Input() navigateBackOnSave = false;
 
   leftIndentSpcaeCount: number = 0;
 
@@ -79,6 +79,7 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
   owningUsersAlias: string = '';
 
   userSubscription!: Subscription;
+  compoundViewActiveItemSubscription!: Subscription;
 
   todoItem: Omit<TodoItem, 'id'> = {
     subject: '',
@@ -99,50 +100,61 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
     private toaster: ToastService,
     private route: ActivatedRoute,
     private userService: UserService,
-    private markdownService: MarkdownService
+    private markdownService: MarkdownService,
+    private cdr: ChangeDetectorRef,
   ) {
     const navigation = this.router.getCurrentNavigation();
+
     this.route.queryParams.pipe(delay(100)).subscribe((params)=>{
         let id = params['id'];
         let subject = params['subject'];
         id = Number.parseInt(id);
         let noData = false;
-
-        if(id){
-          this.todoService.getItemById(id).subscribe((item)=>{
-            this.forEdit = id;
-            this.todoItem = item;
-            this.onEventForResize();
-            this.updateOwningUser();
-            noData = false;
-          });
-        }else if(subject){
-          this.todoService.searchTodos(subject).subscribe((item)=>{
-            this.forEdit = item[0].id;
-            this.todoItem = item[0];
-            this.onEventForResize();
-            this.updateOwningUser();
-            noData = false;
-          });
+        
+        if(this.router.url.startsWith('/create') && (id || subject)){
+          this.router.navigate(['./create']);
+          return;
         }
-        else {
-          noData = true;
-        }
+        setTimeout(()=>{ // EWW , allow index db to initialize
+          if(id){
+            this.todoService.getItemById(id).subscribe((item)=>{
+              if(item){
+                this.forEdit = id;
+                this.todoItem = item;
+                this.refresh();
+                this.updateOwningUser();
+                noData = false;
+              }
+            });
+          }else if(subject){
+            this.todoService.searchTodos(subject).subscribe((item)=>{
+              if(item){
+                this.forEdit = item[0].id;
+                this.todoItem = item[0];
+                this.refresh();
+                this.updateOwningUser();
+                noData = false;
+              }
+            });
+          }
+          else {
+            noData = true;
+          }
+        }, 100);
 
         if (navigation?.extras?.state) {
           let itemForUpdate = navigation.extras.state['item'] as TodoItem;
           this.queryParams = navigation.extras.state['query'];
           this.forEdit = itemForUpdate.id;
           this.todoItem = itemForUpdate;
-          this.compoundViewActiveItem = itemForUpdate;
           this.todoItem.description = this.todoItem.description.replace(
             /<br>/g,
             '\n'
           );
           this.customFormSchema = this.todoItem.userDefined?.formControlSchema;
           this.customFormData = this.todoItem.userDefined?.data;
-          this.onEventForResize();
           this.updateOwningUser();
+          this.onEventForResize();
           noData = false;
         }
 
@@ -157,6 +169,19 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
     });
   }
 
+  ngOnInit(): void{
+    if(this.inCompoundView && this.compoundViewActiveItem$){
+      this.compoundViewActiveItemSubscription =  this.compoundViewActiveItem$.subscribe((item: TodoItem | null)=>{
+        if(item){
+          this.todoItem = item;
+          this.forEdit = item.id;
+          this.option = 'Preview';
+          this.onOptionClick();
+          this.refresh();
+        }
+      });
+    }
+  }
 
   ngAfterViewInit(): void {
     setTimeout(()=>{
@@ -167,20 +192,16 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
     },100);
     requestAnimationFrame(()=>{this.onEventForResize();});
     this.convertedMarkdown = '';
-    this.navigateBackOnSave = true;
-    if(this.inCompoundView && this.compoundViewActiveItem){
-      this.todoItem = this.compoundViewActiveItem;
-    }
+    //this.navigateBackOnSave = true;
   }
 
-  ngOnChanges(changes: any): void{
-    if(this.inCompoundView && this.compoundViewActiveItem){
-      this.todoItem = this.compoundViewActiveItem;
-      this.option = 'Preview';
-      this.forEdit = this.compoundViewActiveItem.id;
-      this.navigateBackOnSave=false;
-      this.onOptionClick();
+  refresh() {
+    if(this.option == 'Editor'){
+      this.markdownService.parse(this.todoItem.description).then((markdown)=>{
+        this.convertedMarkdown = markdown;
+      });
     }
+    this.cdr.detectChanges();
   }
 
   updateOwningUser(): void {
@@ -374,7 +395,7 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
     childItem.tags.push({name});
     childItem.uuid = '';
 
-    let toggleNavOnSave = this.navigateBackOnSave
+    let toggleNavOnSave = this.navigateBackOnSave;
     if(toggleNavOnSave)
       this.navigateBackOnSave = false;
     this.onAddClick();
@@ -474,7 +495,7 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
         const level = parentMatch && !visited.has(parentMatch[1]) ? 1 : 0;
 
         lines.push(
-          `${'\t'.repeat((level + 1) * 2)}${icon} [${child.subject}](./edit?id=${child.id})`
+          `${'\t'.repeat((level + 1) * 2)}${icon} [${child.subject}](?id=${child.id})`
         );
 
         visited.add(child.subject);
@@ -883,8 +904,8 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
 
   onNavigateToCompView(){
     if(!this.router.url.endsWith('/comp')){
-     this.navigateBackOnSave = false;
-     this.onAddClick();
+     // this.navigateBackOnSave=false;
+     // this.onAddClick();
      this.router.navigate(['/comp'], {});
     }
   }
@@ -893,6 +914,9 @@ export class EditorComponent implements AfterViewChecked, AfterViewInit, OnDestr
   ngOnDestroy(): void {
     if(this.userSubscription){
       this.userSubscription.unsubscribe();
+    }
+    if(this.compoundViewActiveItemSubscription){
+      this.compoundViewActiveItemSubscription.unsubscribe();
     }
   }
 }

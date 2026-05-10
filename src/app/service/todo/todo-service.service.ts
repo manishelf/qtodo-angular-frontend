@@ -155,13 +155,15 @@ export class TodoServiceService implements OnDestroy {
   }
 
   initializeItems(): void {
-    this.getAll().subscribe((items)=>{
+    this.getAll().subscribe((items:TodoItem[])=>{
       console.log('DB fetch', Date.now());
       this.todoItems.next(items);
     });
   }
 
   getDb() : IDBDatabase {
+    // TODO: this should return a promise
+    // why did I write it like this
     return this.db;
   }
 

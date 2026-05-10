@@ -2,14 +2,19 @@
     <cdk-virtual-scroll-viewport itemSize="autosize" class="h-full">
         <header class="m-2"></header>
         <div class="flex flex-row flex-wrap">
-        <div tabindex="0" (keydown)="onKeyDownTodoItem($event, todoItem)" 
-        (click)="onClickTodoItem($event, todoItem)" 
-         focus="this.style.float='top'"
-        *cdkVirtualFor="let todoItem of itemList$ | async; let i = index; trackBy: trackById" [id]="i"  
-        class="flex-auto relative max-w-full w-fit h-fit mx-2 my-1 rounded-2xl focus:outline-2 hover:outline-2 hover:shadow-lg
-         outline-offset-2 shadow-colored transition-all animate-focus">
-            <app-todo-item [item]="todoItem" [fromBin]="false" [minimized]="!fromSearch  || (i>1) || inCompoundView"/>
-        </div>
+            <ng-container *cdkVirtualFor="let todoItem of itemList$ | async; let i = index; trackBy: trackById">
+                <div 
+                *ngIf="!(hideChildren && isChildItem(todoItem))"
+                tabindex="0" (keydown)="onKeyDownTodoItem($event, todoItem)" 
+                (click)="onClickTodoItem($event, todoItem)" 
+                focus="this.style.float='top'"
+                [id]="i"  
+                class="flex-auto relative max-w-full w-fit h-fit mx-2 my-1 rounded-2xl focus:outline-2 hover:outline-2 hover:shadow-lg
+                outline-offset-2 shadow-colored transition-all animate-focus" 
+                >
+                    <app-todo-item [item]="todoItem" [fromBin]="false" [minimized]="!fromSearch  || (i>1) || inCompoundView"/>
+                </div>
+            </ng-container>
         </div>
         <footer class="w-full h-10" ></footer>
     </cdk-virtual-scroll-viewport>

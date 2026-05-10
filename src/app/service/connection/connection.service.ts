@@ -85,7 +85,7 @@ export class ConnectionService {
 
         let payload = this.userService.getPayloadFromAccessToken();
 
-        if(payload['user_group_colaboration'] && !this.socketWorkers.get(payload['user_group'])){
+        if(payload && payload['user_group_colaboration'] && !this.socketWorkers.get(payload['user_group'])){
           let wsWorker = new Worker(new URL('/socket/socket.worker.ts', import.meta.url));
           wsWorker.postMessage({
             op: SOC_OP.INIT,

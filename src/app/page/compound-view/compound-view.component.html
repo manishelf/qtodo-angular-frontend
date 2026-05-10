@@ -1,8 +1,13 @@
 <div class="flex flex-row h-full w-full">
-<div class="h-full flex-1/4">
-    <app-home [inCompoundView]=true (itemClickEvent)="activeItemUpdate($event)" [refresh]="shouldRefreshState"></app-home>
-</div>
-<div class="h-full flex-3/4" style="max-width:75%">
-    <app-editor [inCompoundView]=true [compoundViewActiveItem]="activeItem" (saved)="refreshChildren($event)"></app-editor>
-</div>
+    <div class="h-full" [style]="`width:${homeWidthPx}px`">
+        <app-home [inCompoundView]=true (itemClickEvent)="activeItemUpdate($event)" [refresh]="shouldRefreshState"></app-home>
+    </div>
+    <div
+        class="h-full"
+        style="width:15px; cursor: col-resize;"
+        (mousedown)="startResize($event)">  
+    </div>
+    <div class="h-full w-full">
+        <app-editor [inCompoundView]=true (saved)="refreshChildren($event)" [compoundViewActiveItem]="activeItem$"></app-editor>
+    </div>
 </div>

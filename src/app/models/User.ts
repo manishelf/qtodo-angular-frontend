@@ -12,7 +12,8 @@ export interface User {
     token?: string;
 
 	preferences? : {
-		theme: string,
+		theme?: string,
+		hideChildren?: boolean,
 	}
 
 	permissions? : string[];

@@ -1,6 +1,10 @@
 import { Component, OnDestroy, OnInit, HostListener, AfterViewInit, Input, EventEmitter, Output } from '@angular/core';
 import { TodoItem } from './../../models/todo-item';
+import { Tag } from './../../models/tag';
+import { User } from './../../models/User';
 import { TodoServiceService } from '../../service/todo/todo-service.service';
+import { UserService } from '../../service/user/user.service';
+
 import { CommonModule } from '@angular/common';
 import { TodoItemComponent } from './../../component/todo-item/todo-item.component';
 import {
@@ -21,11 +25,14 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   itemList$: Observable<TodoItem[]> = of([])
   fromSearch: boolean = false;
   private queryParamSubscription!: Subscription;
+  private loggedInUserSubscription!: Subscription;
+
+  hideChildren: boolean = true;
 
   @Input('inCompoundView') inCompoundView: boolean = false;
   @Input('refresh') set refreshList(shouldRefresh: boolean){
     if(shouldRefresh){
-      this.queryParamSubscription.unsubscribe();
+      this.ngOnDestroy();
       setTimeout(()=>{
         this.ngOnInit();
       }, 500);
@@ -35,8 +42,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private todoService: TodoServiceService,
+    private userService: UserService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     let url = this.router.url;
 
@@ -59,12 +67,17 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
             return response.json();
           })
           .then((data) => {
-            this.todoService.addMany(data.items);
-            this.router.navigate(['/home']);
+            setTimeout(()=>{ // allow db to init
+              this.todoService.addMany(data.items);
+              this.router.navigate(['/home']);
+            }, 100);
           });
       }
     }
     this.todoService.fromBin = false;
+    this.loggedInUserSubscription = this.userService.loggedInUser$.subscribe((user:User)=>{
+      this.hideChildren = user.preferences?.hideChildren || false;
+    });
     console.log('ctor - home', Date.now());
   }
 
@@ -223,13 +236,19 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.queryParamSubscription) {
       this.queryParamSubscription.unsubscribe();
     }
+    if(this.loggedInUserSubscription){
+      this.loggedInUserSubscription.unsubscribe();
+    }
     console.log('Destroy', Date.now());
-
   }
 
   //called on each view check
   //to optimize rendering
   trackById(i: number, item: any): number{
     return item.id;
+  }
+
+  isChildItem(todoItem: TodoItem){
+    return todoItem.tags.filter((t: Tag)=>t.name.startsWith('child of ')).length > 0;
   }
 }
