@@ -426,7 +426,7 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
             this.todoItem = itemList[0];
           }
         });
-      }else if(this.navigateBackOnSave){
+      }else{
         setTimeout(()=>{
           this.router.navigate(['./edit/parent'],{queryParams:{subject: parentSubjectMatch[1]}});
         },1000)
