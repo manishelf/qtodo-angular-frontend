@@ -204,7 +204,7 @@ export const treeviewExtension: any = {
 
             const clickHandler = (relative || paramsOnly)
                                         ? `onclick="event.preventDefault();
-                                                    window.angularRouter.navigate(['${path}'],{queryParams:${jsonString}});
+                                                    window.angularRouter.navigate(${paramsOnly?'[]':`[${url}]`},{queryParams:${jsonString}});
                                                    "`
                                         : '';
             let anchor = `<a href="${token.href}" ${clickHandler} class="option">${token.text}</a>`;
