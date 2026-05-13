@@ -25,7 +25,11 @@ export class MarkdownService {
      
       res(this.domSanitizer.bypassSecurityTrustHtml(result));
         requestAnimationFrame(() => {
-          Prism.highlightAll();
+          if(!Prism.manual){
+            // make highlighting async
+            Prism.manual = true;
+          }
+          Prism.highlightAll(true);
         });
       });
     });
