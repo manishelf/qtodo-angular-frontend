@@ -4,7 +4,7 @@
         <div class="flex flex-row flex-wrap">
             <ng-container *cdkVirtualFor="let todoItem of itemList$ | async; let i = index; trackBy: trackById">
                 <div 
-                *ngIf="!(hideChildren && isChildItem(todoItem))"
+                *ngIf="fromSearch || !(hideChildren && isChildItem(todoItem))"
                 tabindex="0" (keydown)="onKeyDownTodoItem($event, todoItem)" 
                 (click)="onClickTodoItem($event, todoItem)" 
                 focus="this.style.float='top'"
