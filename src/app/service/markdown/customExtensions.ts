@@ -190,31 +190,30 @@ export const treeviewExtension: any = {
   renderer(token: any) {
     let result = token.raw;
     if (token.type === 'treeviewExtension') {
-      result = '<pre> \n' + result;
+      result = '<pre class="language-treeview"> <code class="language-treeview">\n' + result;
       token.tokens.forEach((token: any)=>{
         token.tokens.forEach((token: any)=>{
           if(token.type == 'link'){
             let relative = token.href.startsWith('./');
             let paramsOnly = token.href.startsWith('./?') || token.href.startsWith('?');;
             // Use URLSearchParams to parse the query string
-            const url = paramsOnly ? new URL(token.href, window.location.href) : new URL(token.href, window.location.origin);
+            let url = paramsOnly ? new URL(token.href, window.location.href) : new URL(token.href, window.location.origin);
             const path = url.pathname;
             const params = Object.fromEntries(url.searchParams.entries());
             const jsonString = JSON.stringify(params).replace(/"/g, '&quot;');
-
             const clickHandler = (relative || paramsOnly)
                                         ? `onclick="event.preventDefault();
-                                                    window.angularRouter.navigate(${paramsOnly?'[]':`[${url}]`},{queryParams:${jsonString}});
+                                                    window.angularRouter.navigate(${paramsOnly?'[]':`[${relative?path:url}]`},{queryParams:${jsonString}});
                                                    "`
                                         : '';
-            let anchor = `<a href="${token.href}" ${clickHandler} class="option">${token.text}</a>`;
+            let anchor = `<a href="${token.href}" ${clickHandler} class="option" style="color: blue">${token.text}</a>`;
             result = result.replace(token.raw, anchor);
           }
         })
       });
       result = result.replace(/\[tree:\s*([^\]]+)\s*\]/, token.title);
       result = result.replace(/\[\/tree\]/g, '');
-      result = result + '</pre>'
+      result = result + '</code> </pre>'
     }
     
     return result;
