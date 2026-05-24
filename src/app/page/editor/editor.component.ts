@@ -788,8 +788,8 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
           );
           return;
         }
-
-        let tag = 'form-' + formSchema.tag.name ? formSchema.tag.name.trim() : formSchema.tag.trim();
+        
+        let tag = 'form-' + (formSchema.tag.name ? formSchema.tag.name.trim() : formSchema.tag.trim());
         this.todoItem.tags.push({ name: tag });
         this.todoService.addOrUpdateCustom(tag, formSchema.formControlSchema);
 
