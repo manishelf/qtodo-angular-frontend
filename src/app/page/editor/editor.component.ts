@@ -495,7 +495,7 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
         const level = parentMatch && !visited.has(parentMatch[1]) ? 1 : 0;
 
         lines.push(
-          `${'\t'.repeat((level + 1) * 2)}${icon} [${child.subject}](?id=${child.id})`
+          `${'\t'.repeat((level) * 2)}${icon} [${child.subject}](?id=${child.id})`
         );
 
         visited.add(child.subject);
