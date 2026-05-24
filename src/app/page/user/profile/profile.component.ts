@@ -179,7 +179,7 @@ export class ProfileComponent implements OnInit{
       user.token = null;
       user.userGroup = target.value;
       this.recentLogins[user.userGroup+'/'+user.email]=user;
-      localStorage["recentLogins"] = JSON.stringify(this.recentLogins);       
+      localStorage['recentLogins'] = JSON.stringify(this.recentLogins);       
     }    
     this.userService.loggedInUser.next(user);
   }

@@ -46,11 +46,9 @@ export class ConnectionService {
             this.router.navigate(['/login']);
             return;
           }
-          recentLoginsMap = JSON.parse(recentLoginsMap);
-          let lastUserKey = localStorage['lastLoggedInAs'];
-          let lastUser = recentLoginsMap[lastUserKey];
+          let lastUser = this.userService.getLastLoggedInUser();
 
-          if(!lastUser || lastUser.email == localUser.email && lastUser.userGroup == localUser.userGroup)
+          if(lastUser.email == localUser.email)
             return;
 
           this.userService.loggedInUser.next(lastUser);
@@ -58,7 +56,7 @@ export class ConnectionService {
           this.getToken().then(token=>{
             if(token && token != ''){
               lastUser.token = token;
-              localStorage['recentLogins']= JSON.stringify(recentLoginsMap);
+              localStorage['recentLogins'] = JSON.stringify(recentLoginsMap);
             }
           });
         }
@@ -93,7 +91,6 @@ export class ConnectionService {
           });
           this.socketWorkers.set(payload['user_group'], wsWorker);
         }
-        localStorage['lastLoggedInAs'] = user.userGroup+'/'+user.email;
       }
     });
 

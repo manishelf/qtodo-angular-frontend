@@ -132,7 +132,7 @@ export class LoginComponent {
         }
       }
       user.password = "";
-      let recentLogins = localStorage["recentLogins"];
+      let recentLogins = localStorage['recentLogins'];
       if(!recentLogins || recentLogins == 'null'){
         recentLogins = `{"${localUser.userGroup}/${localUser.email}":${JSON.stringify(localUser)}}`;
       }
@@ -145,7 +145,7 @@ export class LoginComponent {
       }else{
         recentLogins['anon/anon']={email:'anon', userGroup:'anon'}
       }
-      localStorage["recentLogins"] = JSON.stringify(recentLogins);       
+      localStorage['recentLogins'] = JSON.stringify(recentLogins);       
 
       this.userService.loggedInUser.next(user);
       this.router.navigate(['/home']);

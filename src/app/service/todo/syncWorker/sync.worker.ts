@@ -120,7 +120,7 @@ function handleInit(data: any){
         
         getTodoItemFetchRequest().then((req)=>{
             
-            if(!user || user?.email == localUser.email && user?.userGroup == localUser.userGroup) return;
+            if(!user || user?.email == localUser.email) return;
 
             axios.post('/item/getdiff',req)
             .then(resp=>{

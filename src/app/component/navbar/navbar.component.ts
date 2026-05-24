@@ -132,7 +132,7 @@ export class NavbarComponent implements AfterViewInit {
 
     userService.loggedInUser$.subscribe((user)=>{
       this.user = user;
-
+      let userKey = user?.userGroup+'/'+user?.email;
       if(this.user.profilePicture){
         if(this.user.profilePicture.startsWith('/item/doc/')){
           this.connectionService.getUrlWithToken(this.user.profilePicture).then(url=>this.userProfilePicture=url);
@@ -150,7 +150,7 @@ export class NavbarComponent implements AfterViewInit {
 
       let i = 0;
       for(let e of this.recentLogins){
-        if(e[0] == user?.userGroup+'/'+user?.email){
+        if(e[0] == userKey){
           this.selectedUserIndex = i;
           if(!e[1].preferences || !e[1].preferences.theme){
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -168,6 +168,7 @@ export class NavbarComponent implements AfterViewInit {
       }
 
       this.lastUserLoginArrSize = this.recentLogins.length;
+      localStorage['lastLoggedInAs'] = userKey;
     });
   }
 
