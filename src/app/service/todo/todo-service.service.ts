@@ -232,7 +232,7 @@ export class TodoServiceService implements OnDestroy {
           let savedItem = item as any;
           savedItem.id = id;
           this.changedItem.next(savedItem);
-          this.toaster.success('item saved localy');
+          this.toaster.success('item saved locally');
         },
         (err)=>{
           this.toaster.error('error adding todo item!');
@@ -243,22 +243,32 @@ export class TodoServiceService implements OnDestroy {
       );
 
 
-      /*if(item.userDefined)
-      this.getCustom(item.userDefined.tag.name).subscribe((schema)=>{
+      if(item.userDefined){
+        this.getCustom(item.userDefined.tag.name).subscribe((schema)=>{
           if(!schema){
-            this.addCustom(item.userDefined!.tag.name, item.userDefined!.formControlSchema);
+            this.addOrUpdateCustom(item.userDefined!.tag.name, item.userDefined!.formControlSchema);
           }
-        });*/
+        });
+      }
     });
   }
 
-  addCustom(tag: string, item: any) {
+  addOrUpdateCustom(tag: string, item: any) {
     this.addService.addCustom(this.getDb(), tag, item,(suc)=>{
-      this.toaster.success('saved ' + tag + ' localy');
+      this.toaster.success('saved ' + tag + ' locally');
     },
     (e)=>{
-      this.toaster.error('error saving ' + tag);
-      console.error('error adding custom item', e);
+      if((e.target as any).error?.name === "ConstraintError"){
+        this.updateService.updateCustom(this.getDb(), tag, item, (suc)=>{
+          this.toaster.success('updated ' + tag + ' locally');
+        }, (e)=>{
+          this.toaster.error('error updating ' + tag);
+          console.error('error updating custom item', e);
+        })
+      } else {
+        this.toaster.error('error saving ' + tag);
+        console.error('error adding custom item', e);
+      }
     });
   }
 
@@ -286,7 +296,7 @@ export class TodoServiceService implements OnDestroy {
     this.backendService.updateItem(this.getDb(), item);// order is important as subject can change
     this.updateService.updateItem(this.getDb(), item, (suc)=>{
       this.changedItem.next(item);
-      this.toaster.success('todo item updated localy');
+      this.toaster.success('todo item updated locally');
     },(e)=>{
       this.toaster.error('error updating todo item');
       console.error('error updating todo item: ', e);
@@ -295,7 +305,7 @@ export class TodoServiceService implements OnDestroy {
 
   updateCustom(tag: string, item: any): void {
     this.updateService.updateCustom(this.getDb(), tag, item, (suc)=>{
-      this.toaster.success('updated ' + tag + ' localy');
+      this.toaster.success('updated ' + tag + ' locally');
     },(e)=>{
       this.toaster.error('error updating ' + tag);
       console.error('error updating ' + tag, e);
@@ -308,7 +318,7 @@ export class TodoServiceService implements OnDestroy {
       item.deleted = true;
       this.changedItem.next(item);
       this.backendService.deleteItem(item);
-      this.toaster.success('todo item deleted localy');
+      this.toaster.success('todo item deleted locally');
     } catch (e) {
       this.toaster.error('error deleting todo item');
       console.error('error deleting todo item: ', e);

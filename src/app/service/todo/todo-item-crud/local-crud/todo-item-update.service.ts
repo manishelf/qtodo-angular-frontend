@@ -107,7 +107,7 @@ export class TodoItemUpdateService {
       if(request){
         request.onsuccess = (event)=>{
           let target = event.target as IDBRequest<TodoItem>;
-          this.todoItemUtils.getObjectStoreRW(db, 'custom_items').put(item);
+          this.todoItemUtils.getObjectStoreRW(db, 'custom_items').put({tag, item});
           handleSucc(event);
         };
         request.onerror = handleErr;

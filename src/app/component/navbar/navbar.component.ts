@@ -144,7 +144,6 @@ export class NavbarComponent implements AfterViewInit {
       }
 
       this.recentLogins = Object.entries(this.userService.getRecentLogins());
-      console.log(this.recentLogins)
       if(this.lastUserLoginArrSize != this.recentLogins.length){
         this.selectedUserIndex = this.recentLogins.length - 1; // in case a user is added pick the latest
       }

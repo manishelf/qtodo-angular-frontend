@@ -440,40 +440,8 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
     });
   }
 
+  
   createChildTreeview(parentSubject: string, hierarchy: {item:TodoItem, children: Set<TodoItem>}[]): string{
-
-/*
-    let tree = '\n[tree: ';
-    tree += parentSubject+' ]\n';
-
-    let level = 0;
-    let visited = new Set();
-    for(let entry of hierarchy){
-      visited.add(entry.item.subject)
-      let i = 0 ;
-      for(let child of entry.children){
-        i++;
-        if(visited.has(child.subject)){
-          continue;
-        }
-
-        let icon = '├──';
-        if(i == entry.children.size){
-          icon = '└──';
-        }
-
-        let parentSubject = child.description?.match(/^### \[child of (.+?)\]/);
-        if(parentSubject && !visited.has(parentSubject[1])){
-          level+=1;
-        }else level=0;
-
-        tree += '\t'.repeat((level+1)*2) + icon+' ['+child.subject+'](./edit?id='+child.id+')\n';
-      }
-    }
-
-    tree+='[/tree]\n';
-*/
-
     const lines: string[] = [];
     const visited = new Set<string>();
 
@@ -491,11 +459,13 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
         const icon = isLast ? '└──' : '├──';
 
         // determine depth from description
+        // wtf is this sht , such shitty logic
+        // full scan all descriptions to find the parent
         const parentMatch = child.description?.match(/^### \[child of (.+?)\]/);
         const level = parentMatch && !visited.has(parentMatch[1]) ? 1 : 0;
 
         lines.push(
-          `${'\t'.repeat((level + 1) * 2)}${icon} [${child.subject}](?id=${child.id})`
+          `${'\t'.repeat((level) * 2)}${icon} [${child.subject}](./edit/child?id=${child.id})`
         );
 
         visited.add(child.subject);
@@ -642,7 +612,7 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
         }
       };
     });
-    this.onEventForResize();
+    this.onEventForResize(); // in case normal text paste
   }
 
 
@@ -814,14 +784,14 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
         let formSchema = JSON.parse(this.todoItem.description);
         if (!formSchema.tag || !formSchema.formControlSchema) {
           this.toaster.error(
-            'please provide a unique tag and schema for this shcema!'
+            'please provide a unique tag and schema for this!'
           );
           return;
         }
 
         let tag = 'form-' + formSchema.tag.trim();
         this.todoItem.tags.push({ name: tag });
-        this.todoService.addCustom(tag, formSchema.formControlSchema);
+        this.todoService.addOrUpdateCustom(tag, formSchema.formControlSchema);
 
         if (this.customFormSchema && this.customFormSchema.fields) {
           this.customFormSchema = { // for angular to properly update ui. as only reference change is tracked.
@@ -841,7 +811,7 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
         console.error('Error parsing schema - ');
         console.error(e);
         console.error('input schema - ', this.todoItem.description);
-        this.toaster.error('error parsing the schema please try aggain');
+        this.toaster.error('error parsing the schema please try again');
         return;
       }
     }
@@ -859,6 +829,7 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
       *         "label" : string,
       *         "type" : 'text' | 'textarea' | 'email' | 'password'
       *                  | 'number' | 'date' | 'select' | 'checkbox' | 'radio' | 'boolean' | 'image' | 'file' | 'iframe' | 'canvas'
+      * 
       *                  | 'color' | 'range' | 'month' | 'date' | 'time' | 'datetime-local' | 'timestamp' | 'history',
       *         "placeholder"?: string,
       *         "validation"?: {
@@ -892,6 +863,7 @@ export class EditorComponent implements AfterViewChecked, OnInit, AfterViewInit,
     }
 
     this.schemaEditingInProgress = true;
+    requestAnimationFrame(this.onEventForResize.bind(this))
   }
 
   onReminderClick() {

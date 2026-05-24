@@ -89,7 +89,7 @@ export class ProfileComponent implements OnInit{
       this.CAN_REMOVE_PARTICIPANT = false;
       this.CAN_ENABLE_DISABLE_UG = false;
 
-      this.isOffLine = user.email == localUser.email;
+      this.isOffLine = user.email != localUser.email;
 
       let payload = this.userService.getPayloadFromAccessToken();
       if(!payload) return;
