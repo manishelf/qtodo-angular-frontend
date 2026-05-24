@@ -165,7 +165,7 @@ export const treeviewExtension: any = {
   level: 'block',
 
   start(src: any) {
-    return src.match(/\[|\!\[/)?.index;
+    return src.match(/^\[tree:/)?.index;
   },
 
   tokenizer(src: any) {
