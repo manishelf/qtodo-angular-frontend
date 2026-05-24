@@ -188,7 +188,7 @@ export class UserFormComponent implements OnChanges {
             field.default = '';
           }
           field.default +=
-            ' ,\n ' +
+            (field.default === '') ? '' : ' ,\n ' +
             Intl.DateTimeFormat([], {
               year: 'numeric',
               month: 'long',
