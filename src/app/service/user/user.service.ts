@@ -63,13 +63,13 @@ export class UserService {
     let recentLogins = localStorage['recentLogins'];
     let localUserKey = `${localUser.userGroup}/${localUser.email}`;
     if(!recentLogins || recentLogins == 'null'){
-      recentLogins = `{${localUserKey}:${JSON.stringify(localUser)}}`;
+      recentLogins = `{"${localUserKey}":${JSON.stringify(localUser)}}`;
     }
     try{
       return JSON.parse(recentLogins);
     } catch(e){
       let localUserString = JSON.stringify(localUser);  
-      localStorage['recentLogins'] = `{${localUserKey}:${localUserString}}`;
+      localStorage['recentLogins'] = `{"${localUserKey}":${localUserString}}`;
       let userMap: any = {};
       userMap[localUserKey] = localUser;
       return userMap;
